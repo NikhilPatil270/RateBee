@@ -16,7 +16,7 @@ const connectDB = () => {
     console.log("MySQL Connected successfully.");
   });
 
-  return db;
+  return db.promise();
 };
 
 module.exports = connectDB;
