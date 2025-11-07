@@ -1,4 +1,4 @@
-const bycrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const connectDB = require("../db/db");
 const db = connectDB();
 
@@ -66,84 +66,31 @@ async function createuser(req, res) {
   }
 }
 
-function SortandFilter({ name, email, address, role, sortBy, sortDir }) {
-  const conditions = [];
-  const params = [];
-  if (name) {
-    conditions.push("u.name LIKE ?");
-    params.push(`%${name}%`);
-  }
-  if (email) {
-    conditions.push("u.email LIKE ?");
-    params.push(`%${email}%`);
-  }
-  if (address) {
-    conditions.push("u.address LIKE ?");
-    params.push(`%${address}%`);
-  }
-  if (role) {
-    conditions.push("u.role = ?");
-    params.push(role);
-  }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-  const sortable = new Set(["name", "email", "address", "role"]);
-  const dir = sortDir && sortDir.toUpperCase() === "DESC" ? "DESC" : "ASC";
-  const order = sortable.has(sortBy) ? `ORDER BY u.${sortBy} ${dir}` : "";
-  return { where, order, params };
-}
-
 async function listUsers(req, res) {
   try {
-    const { where, order, params } = buildFilterAndSort({
-      name: req.query.name,
-      email: req.query.email,
-      address: req.query.address,
-      role: req.query.role,
-      sortBy: req.query.sortBy,
-      sortDir: req.query.sortDir,
-    });
     const [rows] = await db.query(
-      `SELECT u.id, u.name, u.email, u.address, u.role FROM users u ${where} ${order}`,
-      params
+      "SELECT id, name, email, address, role FROM users"
     );
     return res.json(rows);
-  } catch (e) {
+  } catch (err) {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
+
 
 async function listStores(req, res) {
   try {
-    const name = req.query.name;
-    const email = req.query.email;
-    const address = req.query.address;
-    const sortBy = req.query.sortBy;
-    const sortDir = req.query.sortDir;
-
-    const conditions = [];
-    const params = [];
-    if (name) { conditions.push("s.name LIKE ?"); params.push(`%${name}%`); }
-    if (email) { conditions.push("s.email LIKE ?"); params.push(`%${email}%`); }
-    if (address) { conditions.push("s.address LIKE ?"); params.push(`%${address}%`); }
-    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
-    const sortable = new Set(["name", "email", "address"]);
-    const dir = sortDir && sortDir.toUpperCase() === "DESC" ? "DESC" : "ASC";
-    const order = sortable.has(sortBy) ? `ORDER BY s.${sortBy} ${dir}` : "";
-
     const [rows] = await db.query(
       `SELECT s.id, s.name, s.email, s.address,
-              ROUND(AVG(r.rating),2) as averageRating
+              ROUND(AVG(r.rating),2) AS averageRating
        FROM stores s
        LEFT JOIN rating r ON r.store_id = s.id
-       ${where}
-       GROUP BY s.id
-       ${order}`,
-      params
+       GROUP BY s.id`
     );
     return res.json(rows);
-  } catch (e) {
+  } catch (err) {
     return res.status(500).json({ message: "Internal server error" });
   }
 }
 
-module.exports = { getDashboardStats, createuser, listStores };
+module.exports = { getDashboardStats, createuser, listStores, listUsers };
