@@ -2,3 +2,7 @@ backend
 npm install mysql2
 npm install express dotenv cors
 npm i bcrypt jsonwebtoken cookie-parser
+
+npm install react-router-dom
+npm install tailwindcss @tailwindcss/vite
+npm install react-icons --save
